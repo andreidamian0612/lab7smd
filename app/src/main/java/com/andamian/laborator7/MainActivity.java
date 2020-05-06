@@ -23,10 +23,12 @@ import android.widget.Toast;
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
+import java.security.Key;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -34,7 +36,9 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
 public class MainActivity extends AppCompatActivity {
-    private KeyStore.PrivateKeyEntry privateKeyEntry;
+//    private KeyStore.PrivateKeyEntry privateKeyEntry;
+    private PublicKey publicKey;
+    private Key privateKey;
     private SharedPreferences sharedPreferences;
     private Cipher cipher;
 
@@ -86,7 +90,9 @@ public class MainActivity extends AppCompatActivity {
 
             if (keyStore.containsAlias("alias_rsa_keys")) {
                 Toast.makeText(this, "Key Already Generated", Toast.LENGTH_SHORT).show();
-                privateKeyEntry = (KeyStore.PrivateKeyEntry) keyStore.getEntry("alias_rsa_keys", null);
+//                privateKeyEntry = (KeyStore.PrivateKeyEntry) keyStore.getEntry("alias_rsa_keys", null);
+                privateKey = keyStore.getKey("alias_rsa_keys",null);
+                publicKey = keyStore.getCertificate("alias_rsa_keys").getPublicKey();
             } else {
                 KeyPairGenerator generator = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_RSA, "AndroidKeyStore");
                 KeyGenParameterSpec keyGenParameterSpec = new KeyGenParameterSpec.Builder("alias_rsa_keys",
@@ -111,7 +117,8 @@ public class MainActivity extends AppCompatActivity {
 
                 String input = passwordInput.getText().toString();
                 try {
-                    cipher.init(Cipher.ENCRYPT_MODE, privateKeyEntry.getCertificate().getPublicKey());
+//                    cipher.init(Cipher.ENCRYPT_MODE, privateKeyEntry.getCertificate().getPublicKey());
+                    cipher.init(Cipher.ENCRYPT_MODE, publicKey);
 
                     byte[] cipher_res;
 
@@ -136,7 +143,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 try {
-                    cipher.init(Cipher.DECRYPT_MODE, privateKeyEntry.getPrivateKey());
+//                    cipher.init(Cipher.DECRYPT_MODE, privateKeyEntry.getPrivateKey());
+                    cipher.init(Cipher.DECRYPT_MODE, privateKey);
                 } catch (InvalidKeyException e) {
                     e.printStackTrace();
                 }
